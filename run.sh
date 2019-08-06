@@ -13,7 +13,9 @@
 # Called From:       (script) any
 # Author:            Gary Namestnik
 # Notes:             Simply execute this script with a URL or a list of URLs and the script will scrape the URL
-# Requires:          cURL, wget, grep, sed, awk, phantom.js (install sudo apt install phantomjs)
+# Requires:          cURL, wget-internet command line utilities
+#	                 grep, sed, awk-command line utilities
+#		             phantom.js-on debian based machines use sudo apt install phantomsjs, on raspbian use https://github.com/piksel/phantomjs-raspberrypi
 # Revsion:           Last change: 05/08/19 by GN :: Added input parameters
 # ===================================================================
 #
@@ -86,7 +88,7 @@ do
     do
         imgIdx=$[$imgIdx+1]
         echo "Image $imgIdx of $imgCount"
-        imgHtml=$(phantomjs save_page.js $imgPage)
+        imgHtml=$(./phantomjs save_page.js $imgPage)
         #check if the fullsize link exists
         if [[ $imgHtml == *$fullSizeCheck* ]]; 
         then
