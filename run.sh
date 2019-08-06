@@ -136,7 +136,6 @@ do
     echo $imgLinks | tr ' ' '\n' > "$wgetPrefix/$userFolder/$galleryFolder/export-image-urls.txt"
     if [ -z "$4" ] || [ "$4" == "false" ]
     then
-        
         #check for overwrite flag, and if so delete all the files
         if [ -z $overwriteFlag ]
         then
@@ -148,9 +147,10 @@ do
                 fi
             done
         fi
-
         echo "Downloading images ..."
         wget -i "$wgetPrefix/$userFolder/$galleryFolder/export-image-urls.txt" -q --show-progress -P "$wgetPrefix/$userFolder/$galleryFolder" $overwriteFlag
+    else
+        echo "Skipping downloading"
     fi
 
     #delete the list file if it is not required
