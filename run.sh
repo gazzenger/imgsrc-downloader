@@ -21,6 +21,9 @@
 # ===================================================================
 #
 
+#make images folder
+mkdir -p "./images"
+
 #check if input is a file (i.e. a list) or a single url
 if [ -e "$1" ]
 then
@@ -112,9 +115,9 @@ do
         if [ $imgIdx == 1 ]
         then
             userFolder=$(echo $imgHtml | grep -o -E "<a [^>]+\">more photos from" | grep -o -E "user=[^\"]+" | grep -Eo "=[^']+" | cut -c 2-)
-            userFolder=$(./cyr2lat.sh $userFolder)
+            userFolder=$(./cyr2lat.sh "$userFolder")
             galleryFolder=$(echo $imgHtml | grep -o -E "iMGSRC.RU</a> [^>]+</div>" | grep -o -E "> [^,]+" | cut -c 3-)
-            galleryFolder=$(./cyr2lat.sh $galleryFolder)
+            galleryFolder=$(./cyr2lat.sh "$galleryFolder")
         fi
 
         #check if the fullsize link exists
