@@ -53,6 +53,8 @@ The following files
 * phantomjs folder - contains a couple of the popular platforms for phantomjs
 * run.sh - the main script for running
 * save_page.js - the blank phantom.js script for simply outputting the rendered url
+* makefile - for creating the correct symbolic link to the phantomjs-lib folder
+* cyr2lat.sh - the cyrillic converter for converting cyrillic strings to latin
 
 ## Use
 
@@ -86,3 +88,6 @@ $ wget -i ./export-image-urls.txt
 
 ## Supported websites
 Currently this only supports imgsrc
+
+## Special thanks to
+* Vladimir Ivanov - who I've taken the Cyrillic converter script from [here](https://vladimir-ivanov.net/batch-rename-files-with-cyrillic-filenames-to-latin-ones-transliterate-file-names/)
