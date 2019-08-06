@@ -2,13 +2,14 @@
 #
 # ===================================================================
 # Purpose:           To download imgsrc images via an automated script
-# Parameters:        one ; two ; three ; four ; five
+# Parameters:        one ; two ; three ; four ; five; six
 #                    ---------------------------
 #                    $one = (file or string) URL, or file to a list of URLs
 #                    $two = (bool) retain the download image link files list
 #                    $three = (bool) only download the single image from the URL
-#                    $four = (string) define a separate output directory for all the downloads
-#                    $five = (bool) don't download the files
+#                    $four = (bool) don't run the download of the files
+#                    $five = (bool) overwrite existing files
+#                    $six = (string) define a separate output directory for all the downloads
 #                    ---------------------------
 # Called From:       (script) any
 # Author:            Gary Namestnik
@@ -27,16 +28,26 @@ then
 else
     urlList=$1
 fi
-
 urlCount=$(echo $urlList | tr ' ' '\n' | wc -l)
 urlIdx=0
 
 #download directory
-if [ ! -z "$4" ] && [ -e "$4" ]
+if [ ! -z "$6" ]
 then
-    wgetPrefix=$4
+    #check if directory exists, if it doesn't then query to create it
+    #if [ ! -d "$6" ]; then
+    #    echo "Output directory doesn't exist, do you want to create it?"
+    #    select yn in "Yes" "No"; do
+    #        case $yn in
+    #            Yes ) mkdir -p "$6"; break;;
+    #            No ) exit;;
+    #        esac
+    #    done
+    #fi
+    mkdir -p "$6"
+    wgetPrefix=$6
 else
-    wgetPrefix="./"
+    wgetPrefix="./images"
 fi
 
 #single image flag
@@ -45,6 +56,14 @@ then
     singleFlag=true
 else
     singleFlag=false
+fi
+
+#overwrite image flag
+if [ ! -z "$5" ] && [ "$5" == "true" ]
+then
+    overwriteFlag=""
+else
+    overwriteFlag="-nc"
 fi
 
 #loop through each link in list
@@ -89,6 +108,13 @@ do
         imgIdx=$[$imgIdx+1]
         echo "Image $imgIdx of $imgCount"
         imgHtml=$(./phantomjs save_page.js $imgPage)
+        #for the first html page, grab the other info about the account, and the album
+        if [ $imgIdx == 1 ]
+        then
+            userFolder=$(echo $imgHtml | grep -o -E "<a [^>]+\">more photos from" | grep -o -E "user=[^\"]+" | grep -Eo "=[^']+" | cut -c 2-)
+            galleryFolder=$(echo $imgHtml | grep -o -E "iMGSRC.RU</a> [^>]+</div>" | grep -o -E "> [^,]+" | cut -c 3-)
+        fi
+
         #check if the fullsize link exists
         if [[ $imgHtml == *$fullSizeCheck* ]]; 
         then
@@ -98,18 +124,34 @@ do
         fi
     done
 
+    #check on the user and gallery folder existing
+    mkdir -p "$wgetPrefix/$userFolder/$galleryFolder"
+
     #save the image list to a temp file and start downloading pictures
-    echo $imgLinks | tr ' ' '\n' > "./export-image-urls$urlIdx.txt"
-    if [ -z "$5" ] || [ "$5" == "false" ]
+    echo $imgLinks | tr ' ' '\n' > "$wgetPrefix/$userFolder/$galleryFolder/export-image-urls.txt"
+    if [ -z "$4" ] || [ "$4" == "false" ]
     then
+        
+        #check for overwrite flag, and if so delete all the files
+        if [ -z $overwriteFlag ]
+        then
+            for files in `cat "$wgetPrefix/$userFolder/$galleryFolder/export-image-urls.txt"`
+            do
+                if [ -e "$wgetPrefix/$userFolder/$galleryFolder/$(basename $files)" ]
+                then
+                    rm -f "$wgetPrefix/$userFolder/$galleryFolder/$(basename $files)"
+                fi
+            done
+        fi
+
         echo "Downloading images ..."
-        wget -i "./export-image-urls$urlIdx.txt" -q --show-progress -P $wgetPrefix
+        wget -i "$wgetPrefix/$userFolder/$galleryFolder/export-image-urls.txt" -q --show-progress -P "$wgetPrefix/$userFolder/$galleryFolder" $overwriteFlag
     fi
 
     #delete the list file if it is not required
-    if ([ -z "$2" ] || [ "$2" == "false" ]) && [ -e "./export-image-urls$urlIdx.txt" ]
+    if ([ -z "$2" ] || [ "$2" == "false" ]) && [ -e "$wgetPrefix/$userFolder/$galleryFolder/export-image-urls.txt" ]
     then
-        rm "./export-image-urls$urlIdx.txt"
+        rm "$wgetPrefix/$userFolder/$galleryFolder/export-image-urls.txt"
     fi
 done
 echo "Finished"
