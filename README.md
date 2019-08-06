@@ -83,3 +83,6 @@ If you choose to only download the link files, then you can download the images 
 ```bash
 $ wget -i ./export-image-urls.txt
 ```
+
+## Supported websites
+Currently this only supports imgsrc

@@ -1,6 +1,9 @@
 clean:
 	rm -f ./phantomjs
 
+clearimages:
+	rm -rf ./images
+
 raspbian:
 	rm -f ./phantomjs
 	ln -S ./phantomjs ./phantomjs-lib/raspbian/phantomjs
