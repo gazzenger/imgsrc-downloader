@@ -2,7 +2,7 @@
 #
 # ===================================================================
 # Purpose:           To download imgsrc images via an automated script
-# Parameters:        one ; two ; three ; four ; five; six
+# Parameters:        one ; two ; three ; four ; five; six; seven
 #                    ---------------------------
 #                    $one = (file or string) URL, or file to a list of URLs
 #                    $two = (bool) retain the download image link files list
@@ -10,7 +10,7 @@
 #                    $four = (bool) don't run the download of the files
 #                    $five = (bool) overwrite existing files
 #                    $six = (bool) enable a TOR connection
-#                    $six = (string) define a separate output directory for all the downloads
+#                    $seven = (string) define a separate output directory (or file with a reference to a directory) for all the downloads
 #                    ---------------------------
 # Called From:       (script) any
 # Author:            Gary Namestnik
@@ -39,18 +39,15 @@ urlIdx=0
 #download directory
 if [ ! -z "$7" ]
 then
-    #check if directory exists, if it doesn't then query to create it
-    #if [ ! -d "$7" ]; then
-    #    echo "Output directory doesn't exist, do you want to create it?"
-    #    select yn in "Yes" "No"; do
-    #        case $yn in
-    #            Yes ) mkdir -p "$7"; break;;
-    #            No ) exit;;
-    #        esac
-    #    done
-    #fi
-    mkdir -p "$7"
-    wgetPrefix=$7
+    #check if it's a file
+    if [ -f "$7" ]; then
+        #if the file exists, then grab the first line
+        wgetPrefix=$(head "$7" -n 1)
+    else 
+        #if file doesn't exist, then assumed a directory, and create (if not already created)
+        mkdir -p "$7"    
+        wgetPrefix=$7
+    fi
 else
     wgetPrefix="./images"
 fi

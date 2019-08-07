@@ -98,7 +98,7 @@ Where
 * C is a boolean flag to prevent downloading the actual images (however the image list file is still generated)
 * D is a boolean flag to overwrite the existing images for the gallery (by default this is turned off), so rerunning the command without this will only add new images
 * E is a boolean flag to use a TOR connection
-* PATH is the path for where all the downloads will be placed (the default is ./images)
+* PATH is the path for where all the downloads will be placed (the default is ./images) - OR a link to a text file with a link in it
 
 And example using a URL, not retaining any image lists, and only downloading a single image, and overwriting any is:
 ```bash
