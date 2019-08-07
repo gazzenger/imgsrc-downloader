@@ -9,6 +9,7 @@
 #                    $three = (bool) only download the single image from the URL
 #                    $four = (bool) don't run the download of the files
 #                    $five = (bool) overwrite existing files
+#                    $six = (bool) enable a TOR connection
 #                    $six = (string) define a separate output directory for all the downloads
 #                    ---------------------------
 # Called From:       (script) any
@@ -17,6 +18,7 @@
 # Requires:          cURL, wget-internet command line utilities
 #	                 grep, sed, awk-command line utilities
 #		             phantom.js-on debian based machines use sudo apt install phantomsjs, on raspbian use https://github.com/piksel/phantomjs-raspberrypi
+#                    tor and torsocks - https://www.linuxuprising.com/2018/10/how-to-install-and-use-tor-as-proxy-in.html
 # Revsion:           Last change: 05/08/19 by GN :: Added input parameters
 # ===================================================================
 #
@@ -35,20 +37,20 @@ urlCount=$(echo $urlList | tr ' ' '\n' | wc -l)
 urlIdx=0
 
 #download directory
-if [ ! -z "$6" ]
+if [ ! -z "$7" ]
 then
     #check if directory exists, if it doesn't then query to create it
-    #if [ ! -d "$6" ]; then
+    #if [ ! -d "$7" ]; then
     #    echo "Output directory doesn't exist, do you want to create it?"
     #    select yn in "Yes" "No"; do
     #        case $yn in
-    #            Yes ) mkdir -p "$6"; break;;
+    #            Yes ) mkdir -p "$7"; break;;
     #            No ) exit;;
     #        esac
     #    done
     #fi
-    mkdir -p "$6"
-    wgetPrefix=$6
+    mkdir -p "$7"
+    wgetPrefix=$7
 else
     wgetPrefix="./images"
 fi
@@ -69,6 +71,17 @@ else
     overwriteFlag="-nc"
 fi
 
+#tor enabling flag
+if [ ! -z "$6" ] && [ "$6" == "true" ]
+then
+    torFlagWgetCurl="torify"
+    torFlagPhantomJS="--proxy=127.0.0.1:9050 --proxy-type=socks5"
+else
+    torFlagWgetCurl=""
+    torFlagPhantomJS=""
+fi
+
+
 #loop through each link in list
 for initUrl in $urlList
 do
@@ -82,7 +95,7 @@ do
     navPages=$initUrl" "
     if [ $singleFlag = false ]
     then
-        navPages+=$(curl -s $initUrl | grep -o -E "<a class='navi' [^>]+>" | grep -o -E "href='[^\"]+'" | grep -Eo "/[^']+" | awk '{print "'$baseUrl'"$1}') 
+        navPages+=$($torFlagWgetCurl curl -s $initUrl | grep -o -E "<a class='navi' [^>]+>" | grep -o -E "href='[^\"]+'" | grep -Eo "/[^']+" | awk '{print "'$baseUrl'"$1}') 
     fi
 
     #get unique pages
@@ -96,7 +109,7 @@ do
         imgPages+=$navPage" "
         if [ $singleFlag = false ]
         then 
-            imgPages+=$(curl -s $navPage | grep -o -E "<td class='pret'><a [^>]+>" | grep -o -E "href='[^\"]+'" | grep -Eo "/[^']+" | awk '{print "'$baseUrl'"$1}')" "
+            imgPages+=$($torFlagWgetCurl curl -s $navPage | grep -o -E "<td class='pret'><a [^>]+>" | grep -o -E "href='[^\"]+'" | grep -Eo "/[^']+" | awk '{print "'$baseUrl'"$1}')" "
         fi
     done
 
@@ -110,7 +123,7 @@ do
     do
         imgIdx=$[$imgIdx+1]
         echo "Image $imgIdx of $imgCount"
-        imgHtml=$(./phantomjs save_page.js $imgPage)
+        imgHtml=$(./phantomjs $torFlagPhantomJS save_page.js $imgPage)
         #for the first html page, grab the other info about the account, and the album
         if [ $imgIdx == 1 ]
         then
@@ -148,7 +161,8 @@ do
             done
         fi
         echo "Downloading images ..."
-        wget -i "$wgetPrefix/$userFolder/$galleryFolder/export-image-urls.txt" -q --show-progress -P "$wgetPrefix/$userFolder/$galleryFolder" $overwriteFlag
+        cat "$wgetPrefix/$userFolder/$galleryFolder/export-image-urls.txt"
+        $torFlagWgetCurl wget -i "$wgetPrefix/$userFolder/$galleryFolder/export-image-urls.txt" -q --show-progress -P "$wgetPrefix/$userFolder/$galleryFolder" $overwriteFlag
     else
         echo "Skipping downloading"
     fi
