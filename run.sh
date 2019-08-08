@@ -4,13 +4,13 @@
 # Purpose:           To download imgsrc images via an automated script
 # Parameters:        one ; two ; three ; four ; five; six; seven
 #                    ---------------------------
-#                    $one = (file or string) URL, or file to a list of URLs
-#                    $two = (bool) retain the download image link files list
-#                    $three = (bool) only download the single image from the URL
-#                    $four = (bool) don't run the download of the files
-#                    $five = (bool) overwrite existing files
-#                    $six = (bool) enable a TOR connection
-#                    $seven = (string) define a separate output directory (or file with a reference to a directory) for all the downloads
+#                    -i = (file or string) URL, or file to a list of URLs
+#                    -l = (bool) retain the download image link files list
+#                    -s = (bool) only download the single image from the URL
+#                    -n = (bool) don't run the download of the files
+#                    -o = (bool) overwrite existing files
+#                    -t = (bool) enable a TOR connection
+#                    -d = (string) define a separate output directory (or file with a reference to a directory) for all the downloads
 #                    ---------------------------
 # Called From:       (script) any
 # Author:            Gary Namestnik
@@ -26,50 +26,72 @@
 #make images folder
 mkdir -p "./images"
 
+#prepare variable defaults for input parameters
+url=''
+deleteList=true
+singleFlag=false
+download=true
+overwriteFlag="-nc"
+torFlag=false
+output=''
+while getopts 'i:lsnotd:' flag; do
+  case "${flag}" in
+    i) url="${OPTARG}"  ;;
+    l) deleteList=false ;;
+    s) singleFlag=true  ;;
+    n) download=false   ;;
+    o) overwriteFlag="" ;;
+    t) torFlag=true     ;;
+    d) output="${OPTARG}";;
+    *) error "Unexpected option ${flag}" ;;
+  esac
+done
+
+
 #check if input is a file (i.e. a list) or a single url
-if [ -e "$1" ]
+if [ -e "$url" ]
 then
-    urlList=$(cat $1 | tr ' ' '\n')
+    urlList=$(cat $url | tr ' ' '\n')
 else
-    urlList=$1
+    urlList=$url
 fi
 urlCount=$(echo $urlList | tr ' ' '\n' | wc -l)
 urlIdx=0
 
 #download directory
-if [ ! -z "$7" ]
+if [ ! -z "$output" ]
 then
     #check if it's a file
-    if [ -f "$7" ]; then
+    if [ -f "$output" ]; then
         #if the file exists, then grab the first line
-        wgetPrefix=$(head "$7" -n 1)
+        wgetPrefix=$(head "$output" -n 1)
     else 
         #if file doesn't exist, then assumed a directory, and create (if not already created)
-        mkdir -p "$7"    
-        wgetPrefix=$7
+        mkdir -p "$output"    
+        wgetPrefix=$output
     fi
 else
     wgetPrefix="./images"
 fi
 
-#single image flag
-if [ ! -z "$3" ] && [ "$3" == "true" ]
-then
-    singleFlag=true
-else
-    singleFlag=false
-fi
+# #single image flag
+# if [ ! -z "$3" ] && [ "$3" == "true" ]
+# then
+#     singleFlag=true
+# else
+#     singleFlag=false
+# fi
 
-#overwrite image flag
-if [ ! -z "$5" ] && [ "$5" == "true" ]
-then
-    overwriteFlag=""
-else
-    overwriteFlag="-nc"
-fi
+# #overwrite image flag
+# if [ ! -z "$5" ] && [ "$5" == "true" ]
+# then
+#     overwriteFlag=""
+# else
+#     overwriteFlag="-nc"
+# fi
 
 #tor enabling flag
-if [ ! -z "$6" ] && [ "$6" == "true" ]
+if [ $torFlag = true ]
 then
     torFlagWgetCurl="torify"
     torFlagPhantomJS="--proxy=127.0.0.1:9050 --proxy-type=socks5"
@@ -144,7 +166,7 @@ do
 
     #save the image list to a temp file and start downloading pictures
     echo $imgLinks | tr ' ' '\n' > "$wgetPrefix/$userFolder/$galleryFolder/export-image-urls.txt"
-    if [ -z "$4" ] || [ "$4" == "false" ]
+    if [ $download = true ]
     then
         #check for overwrite flag, and if so delete all the files
         if [ -z $overwriteFlag ]
@@ -158,14 +180,13 @@ do
             done
         fi
         echo "Downloading images ..."
-        cat "$wgetPrefix/$userFolder/$galleryFolder/export-image-urls.txt"
         $torFlagWgetCurl wget -i "$wgetPrefix/$userFolder/$galleryFolder/export-image-urls.txt" -q --show-progress -P "$wgetPrefix/$userFolder/$galleryFolder" $overwriteFlag
     else
         echo "Skipping downloading"
     fi
 
     #delete the list file if it is not required
-    if ([ -z "$2" ] || [ "$2" == "false" ]) && [ -e "$wgetPrefix/$userFolder/$galleryFolder/export-image-urls.txt" ]
+    if [ $deleteList = true ] && [ -e "$wgetPrefix/$userFolder/$galleryFolder/export-image-urls.txt" ]
     then
         rm "$wgetPrefix/$userFolder/$galleryFolder/export-image-urls.txt"
     fi

@@ -89,16 +89,16 @@ The following files
 The script takes the form
 
 ```bash
-$ ./run.sh URL A B C D PATH
+$ ./run.sh -i URL -l -s -n -o -t -d OUTPUT
 ```
 Where
-* URL is either a URL string or a path to a file with URL strings
-* A is a boolean flag for retaining the download image links file after running (handy if planning on downloading the actual images later)
-* B is a boolean flag for only downloading a single image (base on a single URL or list of URLs), and will not scrape the gallery
-* C is a boolean flag to prevent downloading the actual images (however the image list file is still generated)
-* D is a boolean flag to overwrite the existing images for the gallery (by default this is turned off), so rerunning the command without this will only add new images
-* E is a boolean flag to use a TOR connection
-* PATH is the path for where all the downloads will be placed (the default is ./images) - OR a link to a text file with a link in it
+* -i URL is either a URL string or a path to a file with URL strings
+* -l is a boolean flag for retaining the download image links file after running (handy if planning on downloading the actual images later)
+* -s is a boolean flag for only downloading a single image (base on a single URL or list of URLs), and will not scrape the gallery
+* -n is a boolean flag to prevent downloading the actual images (however the image list file is still generated)
+* -o is a boolean flag to overwrite the existing images for the gallery (by default this is turned off), so rerunning the command without this will only add new images
+* -t is a boolean flag to use a TOR connection
+* -d OUTPUT is the path for where all the downloads will be placed (the default is ./images) - OR a link to a text file with a link in it
 
 And example using a URL, not retaining any image lists, and only downloading a single image, and overwriting any is:
 ```bash
