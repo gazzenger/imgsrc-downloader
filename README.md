@@ -121,3 +121,9 @@ Currently this only supports imgsrc
 
 ## Special thanks to
 * Vladimir Ivanov - who I've taken the Cyrillic converter script from [here](https://vladimir-ivanov.net/batch-rename-files-with-cyrillic-filenames-to-latin-ones-transliterate-file-names/)
+
+## Future development
+There are aims for developing
+* imgsrc logins
+* imgsrc user bulk downloading
+* Forking this repo and developing a more generic img downloader for importing templates, i.e. downloading from other image websites
